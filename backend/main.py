@@ -1,5 +1,6 @@
 from app.services.weather_service import fetch_weather_data
 from app.analytics.temperature_analysis import analyze_temperature_data
+from app.analytics.visualization import create_temperature_chart
 
 # City coordinates
 cities = {
@@ -25,8 +26,14 @@ if city in cities:
     )
 
     # Analyze data
-    analyze_temperature_data(
+    df = analyze_temperature_data(
         f"data/{city}_weather.csv"
+    )
+
+    # Create analytics chart
+    create_temperature_chart(
+        df,
+        city
     )
 
 else:
