@@ -1,6 +1,7 @@
 from app.services.weather_service import fetch_weather_data
+from app.analytics.temperature_analysis import analyze_temperature_data
 
-# City coordinates database
+# City coordinates
 cities = {
     "bratislava": (48.15, 17.11),
     "london": (51.50, -0.12),
@@ -9,18 +10,23 @@ cities = {
     "tokyo": (35.68, 139.69)
 }
 
-# Ask user for city
+# User input
 city = input("Enter city name: ").lower()
 
-# Check if city exists
 if city in cities:
 
     latitude, longitude = cities[city]
 
+    # Fetch weather data
     fetch_weather_data(
         city_name=city,
         latitude=latitude,
         longitude=longitude
+    )
+
+    # Analyze data
+    analyze_temperature_data(
+        f"data/{city}_weather.csv"
     )
 
 else:
