@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 from app.services.weather_service import fetch_weather_data
 from app.analytics.temperature_analysis import analyze_temperature_data
+from app.services.geocoding_service import get_city_coordinates
 
 router = APIRouter()
 
@@ -21,46 +22,81 @@ def health_check():
     }
 
 
-# City coordinates
-cities = {
-    "bratislava": (48.15, 17.11),
-    "london": (51.50, -0.12),
-    "prague": (50.08, 14.43),
-    "new york": (40.71, -74.00),
-    "tokyo": (35.68, 139.69)
-}
-
-
 @router.get("/weather/{city}")
 def get_weather(city: str):
 
-    city = city.lower()
+    coordinates = get_city_coordinates(city)
 
-    # Check city
-    if city not in cities:
-
+    if coordinates is None:
         return {
             "error": "City not found"
         }
 
-    latitude, longitude = cities[city]
+    latitude, longitude = coordinates
 
-    # Fetch weather data
-    fetch_weather_data(
+    weather = fetch_weather_data(
         city_name=city,
         latitude=latitude,
         longitude=longitude
     )
 
-    # Analyze data
     df = analyze_temperature_data(
-        f"data/{city}_weather.csv"
+        f"data/{city.lower()}_weather.csv"
     )
 
-    # Return analytics
+    current = weather["current"]
+
+    # 7-day forecast
+    daily = weather["daily"]
+
+    forecast = []
+
+    for i in range(len(daily["time"])):
+
+        forecast.append({
+            "date": daily["time"][i],
+            "max": daily["temperature_2m_max"][i],
+            "min": daily["temperature_2m_min"][i]
+        })
+
+    chart_data = []
+
+    for _, row in df.head(24).iterrows():
+        chart_data.append({
+            "time": str(row["time"])[11:16],
+            "temperature": row["temperature"]
+        })
+
     return {
         "city": city,
-        "average_temperature": round(df["temperature"].mean(), 2),
-        "max_temperature": round(df["temperature"].max(), 2),
-        "min_temperature": round(df["temperature"].min(), 2)
+
+        "latitude": latitude,
+        "longitude": longitude,
+
+        "current_temperature":
+            current["temperature_2m"],
+
+        "humidity":
+            current["relative_humidity_2m"],
+
+        "wind_speed":
+            current["wind_speed_10m"],
+
+        "feels_like":
+            current["apparent_temperature"],
+
+        "average_temperature":
+            round(df["temperature"].mean(), 2),
+
+        "max_temperature":
+            round(df["temperature"].max(), 2),
+
+        "min_temperature":
+            round(df["temperature"].min(), 2),
+
+        "chart_data":
+            chart_data,
+
+        "forecast":
+            forecast
     }
