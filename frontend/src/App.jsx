@@ -39,10 +39,6 @@ function App() {
 
 });
 
-  useEffect(() => {
-
-}, [history]);
-
 const getCurrentLocation = () => {
 
   setLoading(true);
@@ -125,7 +121,7 @@ const getCurrentLocation = () => {
               updated.slice(0, 5);
 
             localStorage.setItem(
-              "weatherHistory",
+              "history",
               JSON.stringify(finalHistory)
             );
 
