@@ -99,7 +99,7 @@ const getCurrentLocation = () => {
     try {
 
       const response = await fetch(
-        `http://127.0.0.1:8000/weather/${cityName}`
+        `https://wda-wovt.onrender.com/weather/${cityName}`
       );
 
       const data = await response.json();
