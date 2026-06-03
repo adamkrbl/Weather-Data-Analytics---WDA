@@ -1,8 +1,8 @@
 import requests
-import pandas as pd
 
 
 def fetch_weather_data(city_name, latitude, longitude):
+
     url = (
         f"https://api.open-meteo.com/v1/forecast?"
         f"latitude={latitude}"
@@ -17,24 +17,17 @@ def fetch_weather_data(city_name, latitude, longitude):
         f"apparent_temperature"
     )
 
-    response = requests.get(url)
-    data = response.json()
+    try:
+        response = requests.get(url, timeout=10)
+        data = response.json()
 
-    if "error" in data:
+        if "error" in data:
+            return data
+
+        if "hourly" not in data:
+            return {"error": "Invalid API response"}
+
         return data
 
-    # safe check
-    if "hourly" not in data:
-        return {"error": "Invalid API response"}
-
-    times = data["hourly"]["time"]
-    temperatures = data["hourly"]["temperature_2m"]
-
-    df = pd.DataFrame({
-        "time": times,
-        "temperature": temperatures
-    })
-
-    print("Weather data fetched successfully")
-
-    return data
+    except Exception as e:
+        return {"error": f"Request failed: {str(e)}"}

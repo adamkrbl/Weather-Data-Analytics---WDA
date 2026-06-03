@@ -32,154 +32,115 @@ function App() {
   const [error, setError] = useState("");
 
   const [history, setHistory] = useState(() => {
+    return JSON.parse(localStorage.getItem("history")) || [];
+  });
 
-  return JSON.parse(
-    localStorage.getItem("history")
-  ) || [];
+  // -----------------------------
+  // LOCATION WEATHER
+  // -----------------------------
+  const getCurrentLocation = () => {
+    setLoading(true);
+    setError("");
+    setWeatherData(null);
 
-});
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const latitude = position.coords.latitude;
+        const longitude = position.coords.longitude;
 
-const getCurrentLocation = () => {
+        try {
+          const response = await fetch(
+            `https://wda-wovt.onrender.com/weather-by-coords/${latitude}/${longitude}`
+          );
 
-  setLoading(true);
-  setError("");
-  setWeatherData(null);
+          const data = await response.json();
 
-  navigator.geolocation.getCurrentPosition(
+          if (!response.ok || data.error) {
+            setError(data.error || data.reason || "API error");
+            setLoading(false);
+            return;
+          }
 
-    async (position) => {
+          setWeatherData(data);
+        } catch (error) {
+          setError("Could not get your location.");
+        }
 
-      const latitude = position.coords.latitude;
-      const longitude = position.coords.longitude;
-
-      try {
-
-      const response = await fetch(
-  `https://wda-wovt.onrender.com/weather-by-coords/${latitude}/${longitude}`
-);
-
-console.log("STATUS:", response.status);
-
-const data = await response.json();
-
-console.log(data);
-
-if (data.error) {
-  setError(data.reason || "API error");
-  setLoading(false);
-  return;
-}
-
-setWeatherData(data);
-      console.log("STATUS:", response.status);
-
-      } catch (error) {
-
-        setError("Could not get your location.");
+        setLoading(false);
+      },
+      () => {
+        setError("Location access denied.");
+        setLoading(false);
       }
+    );
+  };
 
-      setLoading(false);
-    },
-
-    () => {
-
-      setError("Location access denied.");
-      setLoading(false);
-    }
-
-  );
-
-};
-
+  // -----------------------------
+  // SEARCH CITY
+  // -----------------------------
   const searchCity = async (cityName) => {
+    const query = cityName.trim();
 
-    if (!cityName.trim()) {
-
+    if (!query) {
       setError("Zadajte mesto");
       return;
-
     }
+
     setLoading(true);
     setError("");
     setWeatherData(null);
 
     try {
-
       const response = await fetch(
-        `https://wda-wovt.onrender.com/weather/${cityName}`
+        `https://wda-wovt.onrender.com/weather/${query}`
       );
-
-      console.log("STATUS:", response.status);
 
       const data = await response.json();
 
-      if (data.error) {
-
-        setError(data.error);
-
-      } else {
-
-        setWeatherData(data);
-
-        setHistory((prev) => {
-
-          const updated = [
-            cityName,
-            ...prev.filter(
-              (item) =>
-                item.toLowerCase() !== cityName.toLowerCase()
-            )
-          ];
-
-          const finalHistory =
-              updated.slice(0, 5);
-
-            localStorage.setItem(
-              "history",
-              JSON.stringify(finalHistory)
-            );
-
-            return finalHistory;
-                    });
+      if (!response.ok || data.error) {
+        setError(data.error || "Server error");
+        setLoading(false);
+        return;
       }
-      
-    } catch (error) {
 
+      setWeatherData(data);
+
+      // history
+      setHistory((prev) => {
+        const updated = [
+          query,
+          ...prev.filter(
+            (item) => item.toLowerCase() !== query.toLowerCase()
+          )
+        ].slice(0, 5);
+
+        localStorage.setItem("history", JSON.stringify(updated));
+        return updated;
+      });
+
+    } catch (error) {
       setError("Something went wrong.");
     }
 
     setLoading(false);
   };
 
-  const getWeather = async () => {
-    await searchCity(city);
-  };
-
   return (
     <div className="container">
       <div className="dashboard">
-        <h1 className="title">
-          WDA
-        </h1>
+        <h1 className="title">WDA</h1>
 
         <p className="subtitle">
           Počasie a predpoveď do vrecka
         </p>
 
-            <div className="search-wrapper">
-
+        {/* HISTORY */}
         {history.length > 0 && (
-
           <div className="history-section">
-
-            <h3>
-              Nedávne vyhľadávania
-            </h3>
+            <h3>Nedávne vyhľadávania</h3>
 
             <div className="history-list">
-
               {history.map((item, index) => (
-
                 <button
                   key={index}
                   className="history-btn"
@@ -190,22 +151,18 @@ setWeatherData(data);
                 >
                   {item}
                 </button>
-
               ))}
-
             </div>
-
           </div>
-
         )}
 
+        {/* SEARCH */}
         <div className="search-box">
-
           <input
             type="text"
             placeholder="Zadajte mesto..."
             value={city}
-            onChange={(event) => setCity(event.target.value)}
+            onChange={(e) => setCity(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 searchCity(city);
@@ -213,9 +170,7 @@ setWeatherData(data);
             }}
           />
 
-          <button
-            onClick={() => searchCity(city)}
-          >
+          <button onClick={() => searchCity(city)}>
             Hľadať
           </button>
 
@@ -225,26 +180,17 @@ setWeatherData(data);
           >
             📍 Moja poloha
           </button>
-
         </div>
 
-      </div>
+        {/* LOADING */}
+        {loading && <p className="loading">Načítavam...</p>}
 
-      {loading && (
-        <p className="loading">
-          Načítavam...
-        </p>
-      )}
+        {/* ERROR */}
+        {error && <p className="error">{error}</p>}
 
-        {error && (
-          <p className="error">
-            {error}
-          </p>
-        )}
-
+        {/* WEATHER */}
         {weatherData && weatherData.city && (
           <div className="weather-card">
-
             <h2 className="city-name">
               {weatherData.city.toUpperCase()}
             </h2>
@@ -253,132 +199,46 @@ setWeatherData(data);
               {weatherData.current_temperature}°C
             </div>
 
-            <div
-              style={{
-                marginTop: "20px",
-                display: "flex",
-                justifyContent: "center",
-                gap: "30px",
-                flexWrap: "wrap"
-              }}
-            >
-
-              <div>
-                💧 Vlhkosť: {weatherData.humidity}%
-              </div>
-
-              <div>
-                🌬 Vietor: {weatherData.wind_speed} km/h
-              </div>
-
-              <div>
-                🌡 Pocitová: {weatherData.feels_like}°C
-              </div>
-
-            </div>
             <div className="stats">
-
-              <div className="stat-box">
-                <h3>🌡 Priemer</h3>
-                <p>{weatherData.average_temperature}°C</p>
-              </div>
-
-              <div className="stat-box">
-                <h3>🔥 Max</h3>
-                <p>{weatherData.max_temperature}°C</p>
-              </div>
-
-              <div className="stat-box">
-                <h3>❄️ Min</h3>
-                <p>{weatherData.min_temperature}°C</p>
-              </div>
-
+              <div>💧 {weatherData.humidity}%</div>
+              <div>🌬 {weatherData.wind_speed} km/h</div>
+              <div>🌡 {weatherData.feels_like}°C</div>
             </div>
 
-            <div
-              style={{
-                width: "100%",
-                height: 350,
-                marginTop: "40px"
-              }}
-            >
-              <h3
-                style={{
-                  textAlign: "center",
-                  marginBottom: "20px",
-                  color: "#2563eb"
-                }}
-              >
-                Vývoj teploty za 24 hodín
-              </h3>
-
-              <div
-                style={{
-                  width: "100%",
-                  height: window.innerWidth < 768 ? "280px" : "350px",
-                }}
-              >
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart
-                    data={weatherData.chart_data}
-                    margin={{
-                      top: 10,
-                      right: 20,
-                      left: 0,
-                      bottom: 10
-                    }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-
-                    <XAxis dataKey="time" />
-
-                    <YAxis hide />
-
-                    <Tooltip
-                      formatter={(value) => [`${value} °C`, "Temperature"]}
-                    />
-
-                    <Line
-                      type="monotone"
-                      dataKey="temperature"
-                      stroke="#2563eb"
-                      strokeWidth={3}
-                      dot={{ r: 4 }}
-                      animationDuration={1200}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
+            {/* CHART */}
+            <div style={{ height: 350, marginTop: 30 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={weatherData.chart_data}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="time" />
+                  <YAxis hide />
+                  <Tooltip />
+                  <Line
+                    type="monotone"
+                    dataKey="temperature"
+                    stroke="#2563eb"
+                    strokeWidth={3}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
             </div>
+
+            {/* FORECAST */}
             <div className="forecast-section">
-            <h3>7-dňová predpoveď</h3>
+              <h3>7-dňová predpoveď</h3>
 
-            <div className="forecast-grid">
-
-              {weatherData.forecast.map((day, index) => (
-                <div
-                  key={index}
-                  className="forecast-card"
-                >
-                  <p className="forecast-date">
-                    {day.date}
-                  </p>
-
-                  <p className="forecast-max">
-                    ↑ {day.max}°C
-                  </p>
-
-                  <p className="forecast-min">
-                    ↓ {day.min}°C
-                  </p>
-                </div>
-              ))}
-
+              <div className="forecast-grid">
+                {weatherData.forecast.map((day, i) => (
+                  <div key={i} className="forecast-card">
+                    <p>{day.date}</p>
+                    <p>↑ {day.max}°C</p>
+                    <p>↓ {day.min}°C</p>
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className="map-section">
 
-            <h3>Mapa lokality</h3>
-
+            {/* MAP */}
             <MapContainer
               center={[
                 weatherData.latitude,
@@ -388,13 +248,11 @@ setWeatherData(data);
               style={{
                 height: "400px",
                 width: "100%",
-                borderRadius: "20px"
+                borderRadius: "20px",
+                marginTop: "20px"
               }}
             >
-
-              <TileLayer
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              />
+              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
               <Marker
                 position={[
@@ -402,32 +260,17 @@ setWeatherData(data);
                   weatherData.longitude
                 ]}
               >
-                <Popup>
-                  {weatherData.city}
-                </Popup>
+                <Popup>{weatherData.city}</Popup>
               </Marker>
-
             </MapContainer>
-
           </div>
-          </div>
-          </div>
-          
-               )}
+        )}
       </div>
 
-      <footer
-        style={{
-          marginTop: "25px",
-          color: "#64748b",
-          fontSize: "13px",
-          textAlign: "center"
-        }}
-      >
+      <footer className="footer">
         Built with React • FastAPI • Open-Meteo<br />
         Powered by Adam
       </footer>
-
     </div>
   );
 }

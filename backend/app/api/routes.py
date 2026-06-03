@@ -1,4 +1,6 @@
 from fastapi import APIRouter
+import time
+
 from app.services.weather_service import fetch_weather_data
 from app.analytics.temperature_analysis import analyze_temperature_data
 from app.services.geocoding_service import (
@@ -7,6 +9,14 @@ from app.services.geocoding_service import (
 )
 
 router = APIRouter()
+
+# simple in-memory cache
+CACHE = {}
+CACHE_TTL = 600  # 10 min cache
+
+
+def is_cache_valid(entry_time):
+    return time.time() - entry_time < CACHE_TTL
 
 
 @router.get("/")
@@ -22,6 +32,14 @@ def health_check():
 @router.get("/weather-by-coords/{lat}/{lon}")
 def weather_by_coords(lat: float, lon: float):
 
+    cache_key = f"coords_{lat}_{lon}"
+
+    # CACHE CHECK
+    if cache_key in CACHE:
+        data, timestamp = CACHE[cache_key]
+        if is_cache_valid(timestamp):
+            return data
+
     weather = fetch_weather_data(
         city_name="current_location",
         latitude=lat,
@@ -33,8 +51,7 @@ def weather_by_coords(lat: float, lon: float):
 
     city_name = get_city_from_coordinates(lat, lon)
 
-    # ⚠️ SAFE fallback (no file dependency)
-    df = analyze_temperature_data(weather)  # upravíme nižšie
+    df = analyze_temperature_data(weather)
 
     current = weather["current"]
     daily = weather["daily"]
@@ -56,7 +73,7 @@ def weather_by_coords(lat: float, lon: float):
         for i in range(len(daily["time"]))
     ]
 
-    return {
+    result = {
         "city": city_name,
         "latitude": lat,
         "longitude": lon,
@@ -74,9 +91,21 @@ def weather_by_coords(lat: float, lon: float):
         "forecast": forecast
     }
 
+    CACHE[cache_key] = (result, time.time())
+
+    return result
+
 
 @router.get("/weather/{city}")
 def get_weather(city: str):
+
+    city_key = city.lower().strip()
+
+    # CACHE CHECK
+    if city_key in CACHE:
+        data, timestamp = CACHE[city_key]
+        if is_cache_valid(timestamp):
+            return data
 
     coordinates = get_city_coordinates(city)
 
@@ -90,7 +119,7 @@ def get_weather(city: str):
     if "error" in weather:
         return weather
 
-    df = analyze_temperature_data(weather)  # upravené
+    df = analyze_temperature_data(weather)
 
     current = weather["current"]
     daily = weather["daily"]
@@ -112,7 +141,7 @@ def get_weather(city: str):
         for _, row in df.head(24).iterrows()
     ]
 
-    return {
+    result = {
         "city": city,
         "latitude": latitude,
         "longitude": longitude,
@@ -129,3 +158,7 @@ def get_weather(city: str):
         "chart_data": chart_data,
         "forecast": forecast
     }
+
+    CACHE[city_key] = (result, time.time())
+
+    return result
