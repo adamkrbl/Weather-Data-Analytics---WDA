@@ -28,14 +28,14 @@ def health_check():
 @router.get("/weather-by-coords/{lat}/{lon}")
 def weather_by_coords(lat: float, lon: float):
 
-   weather = fetch_weather_data(
-    city_name="current_location",
-    latitude=lat,
-    longitude=lon
-)
+    weather = fetch_weather_data(
+        city_name="current_location",
+        latitude=lat,
+        longitude=lon
+    )
 
-if "error" in weather:
-    return weather
+    if "error" in weather:
+        return weather
 
     city_name = get_city_from_coordinates(
         lat,
@@ -116,13 +116,13 @@ def get_weather(city: str):
     latitude, longitude = coordinates
 
     weather = fetch_weather_data(
-    city_name=city,
-    latitude=latitude,
-    longitude=longitude
-)
+        city_name=city,
+        latitude=latitude,
+        longitude=longitude
+    )
 
-if "error" in weather:
-    return weather
+    if "error" in weather:
+        return weather
 
     df = analyze_temperature_data(
         f"data/{city.lower()}_weather.csv"
