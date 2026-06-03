@@ -54,10 +54,13 @@ const getCurrentLocation = () => {
 
       try {
 
-        const response = await fetch(
+      const response = await fetch(
         `https://wda-wovt.onrender.com/weather-by-coords/${latitude}/${longitude}`
       );
-        const data = await response.json();
+
+      console.log("STATUS:", response.status);
+
+      const data = await response.json();
 
         setWeatherData(data);
 
@@ -96,6 +99,8 @@ const getCurrentLocation = () => {
       const response = await fetch(
         `https://wda-wovt.onrender.com/weather/${cityName}`
       );
+
+      console.log("STATUS:", response.status);
 
       const data = await response.json();
 
