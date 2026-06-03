@@ -91,6 +91,12 @@ const getCurrentLocation = () => {
 
   const searchCity = async (cityName) => {
 
+    if (!cityName.trim()) {
+
+      setError("Zadajte mesto");
+      return;
+
+    }
     setLoading(true);
     setError("");
     setWeatherData(null);
@@ -149,11 +155,11 @@ const getCurrentLocation = () => {
     <div className="container">
       <div className="dashboard">
         <h1 className="title">
-          Weather Analytics
+          WDA
         </h1>
 
         <p className="subtitle">
-          Real-time weather dashboard
+          Počasie a predpoveď do vrecka
         </p>
 
             <div className="search-wrapper">
@@ -163,7 +169,7 @@ const getCurrentLocation = () => {
           <div className="history-section">
 
             <h3>
-              Recent Searches
+              Nedávne vyhľadávania
             </h3>
 
             <div className="history-list">
@@ -193,7 +199,7 @@ const getCurrentLocation = () => {
 
           <input
             type="text"
-            placeholder="Enter city..."
+            placeholder="Zadajte mesto..."
             value={city}
             onChange={(event) => setCity(event.target.value)}
             onKeyDown={(e) => {
@@ -206,14 +212,14 @@ const getCurrentLocation = () => {
           <button
             onClick={() => searchCity(city)}
           >
-            Search
+            Hľadať
           </button>
 
           <button
             className="location-btn"
             onClick={getCurrentLocation}
           >
-            📍 My Location
+            📍 Moja poloha
           </button>
 
         </div>
@@ -222,7 +228,7 @@ const getCurrentLocation = () => {
 
       {loading && (
         <p className="loading">
-          Loading...
+          Načítavam...
         </p>
       )}
 
@@ -269,7 +275,7 @@ const getCurrentLocation = () => {
             <div className="stats">
 
               <div className="stat-box">
-                <h3>🌡 Average</h3>
+                <h3>🌡 Priemer</h3>
                 <p>{weatherData.average_temperature}°C</p>
               </div>
 
@@ -299,7 +305,7 @@ const getCurrentLocation = () => {
                   color: "#2563eb"
                 }}
               >
-                24 Hour Temperature Trend
+                Vývoj teploty za 24 hodín
               </h3>
 
               <div
@@ -333,7 +339,7 @@ const getCurrentLocation = () => {
               </div>
             </div>
             <div className="forecast-section">
-            <h3>7 Day Forecast</h3>
+            <h3>7-dňová predpoveď</h3>
 
             <div className="forecast-grid">
 
@@ -359,7 +365,7 @@ const getCurrentLocation = () => {
             </div>
             <div className="map-section">
 
-            <h3>Location Map</h3>
+            <h3>Mapa lokality</h3>
 
             <MapContainer
               center={[
