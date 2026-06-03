@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./App.css";
 import {
   LineChart,
@@ -30,7 +30,64 @@ function App() {
   const [weatherData, setWeatherData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [history, setHistory] = useState([]);
+
+  const [history, setHistory] = useState(() => {
+
+  return JSON.parse(
+    localStorage.getItem("history")
+  ) || [];
+
+});
+
+  useEffect(() => {
+
+  localStorage.setItem(
+    "history",
+    JSON.stringify(history)
+  );
+
+}, [history]);
+
+const getCurrentLocation = () => {
+
+  setLoading(true);
+  setError("");
+  setWeatherData(null);
+
+  navigator.geolocation.getCurrentPosition(
+
+    async (position) => {
+
+      const latitude = position.coords.latitude;
+      const longitude = position.coords.longitude;
+
+      try {
+
+        const response = await fetch(
+          `http://127.0.0.1:8000/weather-by-coords/${latitude}/${longitude}`
+        );
+
+        const data = await response.json();
+
+        setWeatherData(data);
+
+      } catch (error) {
+
+        setError("Could not get your location.");
+      }
+
+      setLoading(false);
+    },
+
+    () => {
+
+      setError("Location access denied.");
+      setLoading(false);
+    }
+
+  );
+
+};
 
   const searchCity = async (cityName) => {
 
@@ -64,10 +121,18 @@ function App() {
             )
           ];
 
-          return updated.slice(0, 5);
-        });
-      }
+          const finalHistory =
+              updated.slice(0, 5);
 
+            localStorage.setItem(
+              "weatherHistory",
+              JSON.stringify(finalHistory)
+            );
+
+            return finalHistory;
+                    });
+      }
+      
     } catch (error) {
 
       setError("Something went wrong.");
@@ -144,6 +209,13 @@ function App() {
             Search
           </button>
 
+          <button
+            className="location-btn"
+            onClick={getCurrentLocation}
+          >
+            📍 My Location
+          </button>
+
         </div>
 
       </div>
@@ -153,12 +225,6 @@ function App() {
           Loading...
         </p>
       )}
-
-        {loading && (
-          <p className="loading">
-            Loading...
-          </p>
-        )}
 
         {error && (
           <p className="error">
@@ -203,17 +269,17 @@ function App() {
             <div className="stats">
 
               <div className="stat-box">
-                <h3>Average</h3>
+                <h3>🌡 Average</h3>
                 <p>{weatherData.average_temperature}°C</p>
               </div>
 
               <div className="stat-box">
-                <h3>Max</h3>
+                <h3>🔥 Max</h3>
                 <p>{weatherData.max_temperature}°C</p>
               </div>
 
               <div className="stat-box">
-                <h3>Min</h3>
+                <h3>❄️ Min</h3>
                 <p>{weatherData.min_temperature}°C</p>
               </div>
 

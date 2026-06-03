@@ -22,3 +22,39 @@ def get_city_coordinates(city_name):
         city["latitude"],
         city["longitude"]
     )
+
+
+def get_city_from_coordinates(lat, lon):
+
+    print("LAT:", lat)
+    print("LON:", lon)
+
+    url = (
+        "https://nominatim.openstreetmap.org/reverse"
+        f"?lat={lat}"
+        f"&lon={lon}"
+        "&format=json"
+    )
+
+    headers = {
+        "User-Agent": "WeatherAnalyticsApp"
+    }
+
+    response = requests.get(
+        url,
+        headers=headers
+    )
+
+    data = response.json()
+
+    print("NOMINATIM:", data)
+
+    address = data.get("address", {})
+
+    return (
+        address.get("city")
+        or address.get("town")
+        or address.get("village")
+        or address.get("municipality")
+        or "Unknown Location"
+    )

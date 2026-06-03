@@ -13,13 +13,15 @@ body,
 }
 
 body {
-
   font-family: Arial, sans-serif;
-
-  background: #f5f7fb;
+  background: linear-gradient(
+    135deg,
+    #dbeafe,
+    #eff6ff,
+    #ffffff
+  );
 
   min-height: 100vh;
-
   color: #1e293b;
 }
 
@@ -52,8 +54,8 @@ body {
 
   padding: 40px;
 
-  box-shadow:
-    0 10px 40px rgba(0,0,0,0.08);
+box-shadow:
+  0 20px 60px rgba(37,99,235,0.12);
 }
 
 .title {
@@ -158,7 +160,7 @@ body {
 
   border: 1px solid #e2e8f0;
 
-  border-radius: 20px;
+  border-radius: 24px;
 
   padding: 35px;
 
@@ -208,6 +210,11 @@ body {
 
   box-shadow:
     0 4px 12px rgba(0,0,0,0.04);
+
+  transition: 0.3s;
+  .stat-box:hover {
+  transform: translateY(-4px);
+}
 }
 
 .stat-box h3 {
@@ -229,12 +236,11 @@ body {
 }
 
 .loading {
-
   text-align: center;
-
   color: #2563eb;
-
   margin-top: 20px;
+  font-size: 18px;
+  font-weight: bold;
 }
 
 .error {
@@ -395,95 +401,56 @@ body {
   color: white;
 }
 
+.location-btn {
 
-/* Mobile */
+  width: 220px;
 
-@media (max-width: 768px) {
+  background: #10b981;
 
-  .dashboard {
+  color: white;
 
-    width: 100%;
-
-    padding: 20px;
-  }
-
-  .title {
-
-    font-size: 30px;
-  }
-
-  .subtitle {
-
-    font-size: 14px;
-  }
-
-  .search-box {
-
-    flex-direction: column;
-  }
-
-  .search-box input {
-
-  flex: 1;
+  border: none;
 
   padding: 16px;
 
-  border: 1px solid #dbe3f0;
-
   border-radius: 14px;
 
-  font-size: 16px;
+  cursor: pointer;
 
   font-weight: bold;
 
-  text-align: center;
-
-  outline: none;
+  font-size: 16px;
 
   transition: 0.3s;
 }
 
-.search-box input::placeholder {
+.location-btn:hover {
 
-  text-align: center;
-
-  font-weight: bold;
-
-  color: #94a3b8;
+  background: #059669;
 }
 
-  .search-box button {
+/* Mobile */
 
-    width: 100%;
-  }
+@media (max-width: 480px) {
 
-  .city-name {
-
-    font-size: 28px;
+  .title {
+    font-size: 24px;
   }
 
   .temperature {
-
-    font-size: 52px;
-  }
-
-  .stats {
-
-    flex-direction: column;
-  }
-
-  .stat-box {
-
-    width: 100%;
+    font-size: 42px;
   }
 
   .forecast-card {
-
-    width: 120px;
+    width: 100%;
   }
 
-  .weather-card {
+  .search-box button,
+  .location-btn {
+    width: 100%;
+  }
 
-    padding: 20px;
+  .dashboard {
+    padding: 15px;
   }
 }
