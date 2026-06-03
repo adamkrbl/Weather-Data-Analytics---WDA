@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import "./App.css";
 import {
   LineChart,
@@ -55,14 +55,23 @@ const getCurrentLocation = () => {
       try {
 
       const response = await fetch(
-        `https://wda-wovt.onrender.com/weather-by-coords/${latitude}/${longitude}`
-      );
+  `https://wda-wovt.onrender.com/weather-by-coords/${latitude}/${longitude}`
+);
 
+console.log("STATUS:", response.status);
+
+const data = await response.json();
+
+console.log(data);
+
+if (data.error) {
+  setError(data.reason || "API error");
+  setLoading(false);
+  return;
+}
+
+setWeatherData(data);
       console.log("STATUS:", response.status);
-
-      const data = await response.json();
-
-        setWeatherData(data);
 
       } catch (error) {
 
@@ -233,7 +242,7 @@ const getCurrentLocation = () => {
           </p>
         )}
 
-        {weatherData && (
+        {weatherData && weatherData.city && (
           <div className="weather-card">
 
             <h2 className="city-name">
