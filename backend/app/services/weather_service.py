@@ -22,6 +22,14 @@ def fetch_weather_data(city_name, latitude, longitude):
 
     data = response.json()
 
+    print(data)
+
+    if "hourly" not in data:
+        raise Exception(f"Open-Meteo error: {data}")
+
+    times = data["hourly"]["time"]
+    temperatures = data["hourly"]["temperature_2m"]
+
     times = data["hourly"]["time"]
     temperatures = data["hourly"]["temperature_2m"]
 
