@@ -442,7 +442,8 @@ box-shadow:
   }
 
   .forecast-card {
-    width: 100%;
+  width: 100%;
+  max-width: 220px;
   }
 
   .search-box button,
@@ -453,4 +454,13 @@ box-shadow:
   .dashboard {
     padding: 15px;
   }
+  .stats {
+  flex-direction: column;
+  gap: 12px;
+}
+
+.stat-box {
+  width: 100%;
+  margin: 0 auto;
+}
 }

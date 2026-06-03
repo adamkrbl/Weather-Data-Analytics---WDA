@@ -41,11 +41,6 @@ function App() {
 
   useEffect(() => {
 
-  localStorage.setItem(
-    "history",
-    JSON.stringify(history)
-  );
-
 }, [history]);
 
 const getCurrentLocation = () => {
@@ -311,16 +306,24 @@ const getCurrentLocation = () => {
               <div
                 style={{
                   width: "100%",
-                  height: "350px",
+                  height: window.innerWidth < 768 ? "280px" : "350px",
                 }}
               >
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={weatherData.chart_data}>
+                  <LineChart
+                    data={weatherData.chart_data}
+                    margin={{
+                      top: 10,
+                      right: 20,
+                      left: 0,
+                      bottom: 10
+                    }}
+                  >
                     <CartesianGrid strokeDasharray="3 3" />
 
                     <XAxis dataKey="time" />
 
-                    <YAxis />
+                    <YAxis hide />
 
                     <Tooltip
                       formatter={(value) => [`${value} °C`, "Temperature"]}
