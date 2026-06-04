@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./App.css";
 import {
   LineChart,
@@ -32,9 +32,21 @@ function App() {
   const [error, setError] = useState("");
 
   const [history, setHistory] = useState(() => {
-    return JSON.parse(localStorage.getItem("history")) || [];
-  });
+  return JSON.parse(localStorage.getItem("history")) || [];
+});
 
+  useEffect(() => {
+    const handleBack = () => {
+      setWeatherData(null);
+      setError("");
+    };
+
+    window.addEventListener("popstate", handleBack);
+
+    return () => {
+      window.removeEventListener("popstate", handleBack);
+    };
+  }, []);
   // -----------------------------
   // LOCATION WEATHER
   // -----------------------------
@@ -60,6 +72,12 @@ function App() {
             setLoading(false);
             return;
           }
+
+          window.history.pushState(
+            { weather: true },
+            "",
+            ""
+          );
 
           setWeatherData(data);
         } catch (error) {
@@ -103,7 +121,13 @@ function App() {
         return;
       }
 
-      setWeatherData(data);
+        window.history.pushState(
+          { weather: true },
+          "",
+          ""
+        );
+
+        setWeatherData(data);
 
       // history
       setHistory((prev) => {
@@ -230,9 +254,21 @@ function App() {
               <div className="forecast-grid">
                 {weatherData.forecast.map((day, i) => (
                   <div key={i} className="forecast-card">
-                    <p>{day.date}</p>
-                    <p>↑ {day.max}°C</p>
-                    <p>↓ {day.min}°C</p>
+
+                    <div className="forecast-date">
+                      {new Date(day.date).toLocaleDateString("sk-SK")}
+                    </div>
+
+                    <div className="forecast-max">
+                      <span className="weather-icon">☀️</span>
+                      <span>{day.max}°C</span>
+                    </div>
+
+                    <div className="forecast-min">
+                      <span className="weather-icon">🌙</span>
+                      <span>{day.min}°C</span>
+                    </div>
+
                   </div>
                 ))}
               </div>
@@ -268,8 +304,11 @@ function App() {
       </div>
 
       <footer className="footer">
-        Built with React • FastAPI • Open-Meteo<br />
-        Powered by Adam
+        Built with React • FastAPI • Open-Meteo
+        <br />
+        <span className="footer-author">
+          Powered by Adam
+        </span>
       </footer>
     </div>
   );
